@@ -1,0 +1,408 @@
+---
+version: "2"
+services:
+  portainer:
+     container_name: portainer
+     image: portainer/portainer-ce:latest
+     restart: unless-stopped
+     network_mode: host
+     ports:
+       - 9000:9000
+     security_opt:
+       - no-new-privileges:true
+     volumes:
+       - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
+       - /opt/dockerconfigs/portainer/data:/data # Change to local directory if you want to save/transfer config locally
+     environment:
+       - TZ=America/Arizona
+  unifi-controller:
+    image: ghcr.io/linuxserver/unifi-controller
+    container_name: unifi-controller
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MEM_LIMIT=1024M #optional
+    volumes:
+      - /opt/dockerconfigs/unifi:/config
+    ports:
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 8443:8443
+    #  - 1900:1900/udp #optional
+      - 8843:8843 #optional
+      - 8880:8880 #optional
+      - 6789:6789 #optional
+      - 5514:5514 #optional
+    restart: unless-stopped
+  influxdb:
+    hostname: influxdb
+    container_name: influxdb
+    image: influxdb
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - /opt/dockerconfigs/influxdb:/var/lib/influxdb
+    restart: unless-stopped
+  varken:
+    hostname: varken
+    container_name: varken
+    image: boerderij/varken
+    network_mode: host
+    volumes:
+      - /opt/dockerconfigs/varken:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - VRKN_GLOBAL_SONARR_SERVER_IDS=1
+      - VRKN_GLOBAL_RADARR_SERVER_IDS=1
+      - VRKN_GLOBAL_LIDARR_SERVER_IDS=false
+      - VRKN_GLOBAL_TAUTULLI_SERVER_IDS=1
+      - VRKN_GLOBAL_OMBI_SERVER_IDS=1
+      - VRKN_GLOBAL_SICKCHILL_SERVER_IDS=false
+      - VRKN_GLOBAL_UNIFI_SERVER_IDS=true
+      - VRKN_GLOBAL_MAXMIND_LICENSE_KEY=9ubq6W517DZaH1Hk
+      - VRKN_INFLUXDB_URL=192.168.1.102
+      - VRKN_INFLUXDB_PORT=8086
+      - VRKN_INFLUXDB_SSL=false
+      - VRKN_INFLUXDB_VERIFY_SSL=false
+      - VRKN_INFLUXDB_USERNAME=root
+      - VRKN_INFLUXDB_PASSWORD=root
+      - VRKN_TAUTULLI_1_URL=192.168.1.102:8181
+      - VRKN_TAUTULLI_1_FALLBACK_IP=1.1.1.1
+      - VRKN_TAUTULLI_1_APIKEY=dac55f3384264d0da06cdd02022e6a67
+      - VRKN_TAUTULLI_1_SSL=false
+      - VRKN_TAUTULLI_1_VERIFY_SSL=false
+      - VRKN_TAUTULLI_1_GET_ACTIVITY=true
+      - VRKN_TAUTULLI_1_GET_ACTIVITY_RUN_SECONDS=30
+      - VRKN_TAUTULLI_1_GET_STATS=true
+      - VRKN_TAUTULLI_1_GET_STATS_RUN_SECONDS=3600
+      - VRKN_SONARR_1_URL=192.168.1.102:8989
+      - VRKN_SONARR_1_APIKEY=27df081969e849ad84d8983048d25ab0
+      - VRKN_SONARR_1_SSL=false
+      - VRKN_SONARR_1_VERIFY_SSL=false
+      - VRKN_SONARR_1_MISSING_DAYS=7
+      - VRKN_SONARR_1_MISSING_DAYS_RUN_SECONDS=300
+      - VRKN_SONARR_1_FUTURE_DAYS=1
+      - VRKN_SONARR_1_FUTURE_DAYS_RUN_SECONDS=300
+      - VRKN_SONARR_1_QUEUE=true
+      - VRKN_SONARR_1_QUEUE_RUN_SECONDS=300
+      - VRKN_SONARR_2_URL=sonarr2.domain.tld:8989
+      - VRKN_SONARR_2_APIKEY=yyyyyyyyyyyyyyyy
+      - VRKN_SONARR_2_SSL=false
+      - VRKN_SONARR_2_VERIFY_SSL=false
+      - VRKN_SONARR_2_MISSING_DAYS=7
+      - VRKN_SONARR_2_MISSING_DAYS_RUN_SECONDS=300
+      - VRKN_SONARR_2_FUTURE_DAYS=1
+      - VRKN_SONARR_2_FUTURE_DAYS_RUN_SECONDS=300
+      - VRKN_SONARR_2_QUEUE=true
+      - VRKN_SONARR_2_QUEUE_RUN_SECONDS=300
+      - VRKN_RADARR_1_URL=192.168.1.102:7878
+      - VRKN_RADARR_1_APIKEY=58089cefaf9348ef9ab9ca14f72e8ced
+      - VRKN_RADARR_1_SSL=false
+      - VRKN_RADARR_1_VERIFY_SSL=false
+      - VRKN_RADARR_1_QUEUE=true
+      - VRKN_RADARR_1_QUEUE_RUN_SECONDS=300
+      - VRKN_RADARR_1_GET_MISSING=true
+      - VRKN_RADARR_1_GET_MISSING_RUN_SECONDS=300
+      - VRKN_RADARR_2_URL=radarr2.domain.tld
+      - VRKN_RADARR_2_APIKEY=yyyyyyyyyyyyyyyy
+      - VRKN_RADARR_2_SSL=false
+      - VRKN_RADARR_2_VERIFY_SSL=false
+      - VRKN_RADARR_2_QUEUE=true
+      - VRKN_RADARR_2_QUEUE_RUN_SECONDS=300
+      - VRKN_RADARR_2_GET_MISSING=true
+      - VRKN_RADARR_2_GET_MISSING_RUN_SECONDS=300
+      - VRKN_LIDARR_1_URL=lidarr1.domain.tld:8686
+      - VRKN_LIDARR_1_APIKEY=xxxxxxxxxxxxxxxx
+      - VRKN_LIDARR_1_SSL=false
+      - VRKN_LIDARR_1_VERIFY_SSL=false
+      - VRKN_LIDARR_1_MISSING_DAYS=30
+      - VRKN_LIDARR_1_MISSING_DAYS_RUN_SECONDS=300
+      - VRKN_LIDARR_1_FUTURE_DAYS=30
+      - VRKN_LIDARR_1_FUTURE_DAYS_RUN_SECONDS=300
+      - VRKN_LIDARR_1_QUEUE=true
+      - VRKN_LIDARR_1_QUEUE_RUN_SECONDS=300
+      - VRKN_OMBI_1_URL=192.168.1.102:3579
+      - VRKN_OMBI_1_APIKEY=fa2002ac9aa24c2da7b6df244effa382
+      - VRKN_OMBI_1_SSL=false
+      - VRKN_OMBI_1_VERIFY_SSL=false
+      - VRKN_OMBI_1_GET_REQUEST_TYPE_COUNTS=true
+      - VRKN_OMBI_1_REQUEST_TYPE_RUN_SECONDS=300
+      - VRKN_OMBI_1_GET_REQUEST_TOTAL_COUNTS=true
+      - VRKN_OMBI_1_REQUEST_TOTAL_RUN_SECONDS=300
+      - VRKN_OMBI_1_GET_ISSUE_STATUS_COUNTS=true
+      - VRKN_OMBI_1_ISSUE_STATUS_RUN_SECONDS=300
+      - VRKN_SICKCHILL_1_URL=sickchill.domain.tld:8081
+      - VRKN_SICKCHILL_1_APIKEY=xxxxxxxxxxxxxxxx
+      - VRKN_SICKCHILL_1_SSL=false
+      - VRKN_SICKCHILL_1_VERIFY_SSL=false
+      - VRKN_SICKCHILL_1_GET_MISSING=true
+      - VRKN_SICKCHILL_1_GET_MISSING_RUN_SECONDS=300
+      - VRKN_UNIFI_1_URL=192.168.1.102:8443
+      - VRKN_UNIFI_1_USERNAME=robbiem707@me.com
+      - VRKN_UNIFI_1_PASSWORD=caBqob-wexrag-kuhny6
+      - VRKN_UNIFI_1_SITE=Default
+      - VRKN_UNIFI_1_USG_NAME=MyRouter
+      - VRKN_UNIFI_1_SSL=true
+      - VRKN_UNIFI_1_VERIFY_SSL=false
+      - VRKN_UNIFI_1_GET_USG_STATS_RUN_SECONDS=300
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+  grafana:
+    hostname: grafana
+    container_name: grafana
+    image: grafana/grafana
+    network_mode: host
+    ports:
+      - 3000:3000
+    volumes: 
+      - /opt/dockerconfigs/grafana:/config
+    environment:
+      - GF_PATHS_DATA=/config/data
+      - GF_PATHS_LOGS=/config/logs
+      - GF_PATHS_PLUGINS=/config/plugins
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    depends_on:
+      - influxdb
+      - varken
+    restart: unless-stopped
+  tautulli:
+    image: ghcr.io/linuxserver/tautulli
+    container_name: tautulli
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+    volumes:
+      - /opt/dockerconfigs/Tautulli:/config
+      - /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Logs:/logs
+     #  - /opt/dockerconfigs/shared:/shared
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+  plex:
+    image: ghcr.io/linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - runtime=nvidia
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - UMASK_SET=022 #optional
+      - PLEX_CLAIM= #optional
+    volumes:
+      - /var/lib/plexmediaserver:/config
+      - /mnt/raid1/tv:/tv1
+      - /mnt/TV1/tv:/tv2
+      - /run/media/xoni/Movies:/movies
+    restart: unless-stopped
+  qbittorrent:
+    image: ghcr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - UMASK_SET=022
+      - WEBUI_PORT=8087
+    volumes:
+      - /opt/dockerconfigs/qbittorrent:/config
+      - /home/xoni/Downloads:/downloads
+      - /mnt/raid1/tv:/tv1
+      - /mnt/TV1/tv:/tv2
+      - /mnt/Movies/Movies:/movies
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 8087:8087
+      - 33578:33578
+    restart: unless-stopped
+  heimdall:
+    image: ghcr.io/linuxserver/heimdall
+    container_name: heimdall
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+    volumes:
+      - /opt/dockerconfigs/heimdall:/config
+    ports:
+      - 8118:80
+      - 4113:443
+    restart: unless-stopped
+  calibre-web:
+    image: ghcr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - DOCKER_MODS=linuxserver/calibre-web:calibre
+    volumes:
+      - /opt/dockerconfigs/Calibre:/config
+      - /mnt/TV1/books:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+  jackett:
+    image: ghcr.io/linuxserver/jackett
+    container_name: jackett
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+     # - AUTO_UPDATE=true #optional
+     # - RUN_OPTS=<run options here> #optional
+    volumes:
+      - /opt/dockerconfigs/jackett:/config
+      - /opt/dockerconfigs/jackett/blackhole:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+  ombi:
+    image: ghcr.io/linuxserver/ombi
+    container_name: ombi
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+    #  - BASE_URL=/ombi #optional
+    volumes:
+      - /opt/dockerconfigs/ombi:/config
+    ports:
+      - 3579:3579
+    restart: unless-stopped
+  nextcloud:
+    image: ghcr.io/linuxserver/nextcloud
+    container_name: nextcloud
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+    volumes:
+      - /opt/dockerconfigs/nextcloud:/config
+      - /opt/dockerconfigs/nextcloud/data:/data
+    ports:
+      - 7443:443
+	  - 9091:9000
+    restart: unless-stopped
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: radarr
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - UMASK_SET=022 #optional
+    volumes:
+      - /opt/dockerconfigs/radarr:/config
+      - /mnt/Movies/Movies:/movies
+      - /mnt/Data:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr
+    container_name: sonarr
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - UMASK_SET=022 #optional
+    volumes:
+      - /opt/dockerconfigs/sonarr:/config
+      - /mnt/raid1/tv:/tv1
+      - /mnt/TV1/tv:/tv2
+      - /mnt/Data:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  duplicati:
+    image: ghcr.io/linuxserver/duplicati
+    container_name: duplicati
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Arizona
+      - CLI_ARGS= #optional
+    volumes:
+      - /opt/dockerconfigs/duplicati:/config
+      - /opt/dockerconfigs/duplicati/backups:/backups
+      - /home/xoni:/source
+      - /:/source1
+    ports:
+      - 8200:8200
+    restart: unless-stopped
+  taisun:
+    image: linuxserver/taisun
+    container_name: taisun
+    network_mode: bridge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 3005:3005
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitoring_prometheus
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /opt/dockerconfigs/prometheus/config:/etc/prometheus/
+      - /opt/dockerconfigs/prometheus/data:/prometheus
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+      - '-alertmanager.url=http://alertmanager:9093'
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+  #  links:
+  #    - cadvisor:cadvisor
+  #    - node-exporter:node-exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring_node_exporter
+    network_mode: host
+    restart: unless-stopped
+    expose:
+      - 9100
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: monitoring_cadvisor
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
+  guacd:
+    image: ghcr.io/linuxserver/guacd
+    container_name: guacd
+    network_mode: host
+    ports:
+      - 4822:4822
+    restart: unless-stopped
